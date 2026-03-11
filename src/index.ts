@@ -16,10 +16,11 @@ program
   .description("Generate creative assets from a campaign brief")
   .requiredOption("-b, --brief <path>", "Path to campaign brief JSON")
   .option("-o, --output <dir>", "Output directory", "output")
-  .action(async (opts: { brief: string; output: string }) => {
+  .option("-l, --locale <code>", "Override locale from brief (e.g. es-MX, fr-FR)")
+  .action(async (opts: { brief: string; output: string; locale?: string }) => {
     try {
       const config = loadConfig();
-      const result = await runPipeline(opts.brief, opts.output, config);
+      const result = await runPipeline(opts.brief, opts.output, config, opts.locale);
 
       console.log("\n========================================");
       console.log("  Pipeline Complete");

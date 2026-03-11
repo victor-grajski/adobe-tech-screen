@@ -57,6 +57,9 @@ cp .env.example .env
 # Run with tsx (development)
 npm run dev -- generate --brief examples/campaign-brief.json
 
+# Override locale (uses matching localizedMessages entry)
+npm run dev -- generate --brief examples/campaign-brief.json --locale es-MX
+
 # Or build and run compiled JS
 npm run build
 npm start -- generate --brief examples/campaign-brief.json
@@ -120,7 +123,7 @@ npm run dev -- generate --brief examples/campaign-brief.json --output my-output
 
 ### Key fields
 
-- **`localizedMessages`** (optional): Map of locale codes to translated campaign messages. The pipeline resolves the message by matching `locale` — exact match, then language-only fallback (e.g. `"es"` matches `"es-MX"`), then default `message`.
+- **`localizedMessages`** (optional): Map of locale codes to translated campaign messages. The pipeline resolves the message by matching `locale` — exact match, then language-only fallback (e.g. `"es"` matches `"es-MX"`), then default `message`. Use `--locale <code>` to override the brief's locale at runtime.
 - **`brandGuidelines.colors`**: `text` and `background` hex colors plus an `accent` array with hex values and descriptions. Used for overlay styling, prompt context, and compliance color checks.
 - **`brandGuidelines.typography`**: Font settings for `heading`, `subheading`, and `body` levels. The heading style is used for campaign text overlay. Font stacks with generic fallbacks (e.g. `"Futura, sans-serif"`) are rendered via sharp's SVG/Pango.
 - **`brandGuidelines.identity`**: Brand description, mission, purpose, vision, and values — injected into fal.ai prompts so generated images reflect brand aesthetic.

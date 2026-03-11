@@ -17,6 +17,7 @@ npm run dev -- generate --brief examples/campaign-brief.json
 
 ## Key Commands
 - `npm run dev -- generate --brief <path>` — Run pipeline with tsx
+- `npm run dev -- generate --brief <path> --locale es-MX` — Run with locale override
 - `npm run build` — Compile TypeScript to dist/
 - `npm start -- generate --brief <path>` — Run compiled JS
 
@@ -47,7 +48,7 @@ The brief's `brandGuidelines` object includes:
 - `logoPath` — Required path to brand logo (composited on all creatives)
 
 ## Localization
-Set `campaign.locale` (e.g. `"es-MX"`) and provide `campaign.localizedMessages` as a locale-to-string map. The pipeline resolves the message with exact match → language-only fallback → default `message`.
+Set `campaign.locale` (e.g. `"es-MX"`) and provide `campaign.localizedMessages` as a locale-to-string map. The pipeline resolves the message with exact match → language-only fallback → default `message`. The CLI `--locale` flag overrides the brief's locale.
 
 ## Compliance Checks
 Four structured checks per product:

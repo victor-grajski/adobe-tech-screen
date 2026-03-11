@@ -15,6 +15,7 @@ export async function runPipeline(
   briefPath: string,
   outputDir: string,
   config: AppConfig,
+  localeOverride?: string,
 ): Promise<PipelineResult> {
   const projectRoot = process.cwd();
   const absOutputDir = resolve(projectRoot, outputDir);
@@ -34,6 +35,11 @@ export async function runPipeline(
   let end = startStage("parse-brief");
   const brief = await parseBrief(briefPath);
   end();
+
+  // Apply locale override from CLI flag if provided
+  if (localeOverride) {
+    brief.campaign.locale = localeOverride;
+  }
 
   // Resolve localized message and build overlay options
   const resolvedMessage = resolveLocalizedMessage(brief.campaign);
