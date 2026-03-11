@@ -1,0 +1,30 @@
+{
+  "campaign": {
+    "name": "Summer Sale 2025",
+    "message": "Up to 50% Off — Limited Time Only",
+    "region": "US",
+    "locale": "en-US",
+    "audience": "Young professionals aged 25-35"
+  },
+  "products": [
+    {
+      "id": "product-a",
+      "name": "UltraBoost Running Shoes",
+      "description": "Lightweight performance running shoes with responsive cushioning",
+      "imagePrompt": "Professional product photo of modern white running shoes on clean minimal background, studio lighting",
+      "existingAssetDir": "examples/assets/product-a"
+    },
+    {
+      "id": "product-b",
+      "name": "CloudWalk Sandals",
+      "description": "Comfortable everyday sandals with memory foam insole",
+      "imagePrompt": "Professional product photo of stylish brown leather sandals on clean minimal background, studio lighting"
+    }
+  ],
+  "brandGuidelines": {
+    "primaryColor": "#FF5733",
+    "secondaryColor": "#1A1A2E",
+    "prohibitedWords": ["cheap", "guarantee", "miracle"]
+  },
+  "aspectRatios": ["1:1", "9:16", "16:9"]
+}
