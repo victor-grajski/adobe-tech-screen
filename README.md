@@ -1,6 +1,6 @@
 # Creative Automation Pipeline
 
-A Node.js pipeline that automates creative asset generation for social ad campaigns using GenAI. Given a campaign brief (JSON), it generates brand-aware product images, composites logos and campaign text with brand typography, runs structured compliance checks, and uploads to Cloudinary.
+A Node.js pipeline that automates creative asset generation for social ad campaigns using GenAI. Given a campaign brief (JSON), it generates brand-aware product images, composites logos, product name, description, and campaign text with brand typography, runs structured compliance checks, and uploads to Cloudinary.
 
 ## Architecture
 
@@ -20,8 +20,8 @@ Campaign Brief (JSON)
        │
        ▼
 [4] Text Overlay (sharp)
+       │   product name (heading) + description (body) + campaign message (subheading)
        │   brand typography + logo composite + brand-colored banner
-       │   localized campaign message
        │
        ▼
 [5] Compliance Checks
@@ -86,9 +86,8 @@ npm run dev -- generate --brief examples/campaign-brief.json --output my-output
   "products": [
     {
       "id": "product-a",
-      "name": "UltraBoost Running Shoes",
-      "description": "Lightweight performance running shoes",
-      "imagePrompt": "Professional product photo of modern white running shoes...",
+      "name": "Heir Series 2",
+      "description": "Everything you need to take 'em for everything they've got.",
       "existingAssetDir": "examples/assets/product-a"
     }
   ],
@@ -125,13 +124,13 @@ npm run dev -- generate --brief examples/campaign-brief.json --output my-output
 
 - **`localizedMessages`** (optional): Map of locale codes to translated campaign messages. The pipeline resolves the message by matching `locale` — exact match, then language-only fallback (e.g. `"es"` matches `"es-MX"`), then default `message`. Use `--locale <code>` to override the brief's locale at runtime.
 - **`brandGuidelines.colors`**: `text` and `background` hex colors plus an `accent` array with hex values and descriptions. Used for overlay styling, prompt context, and compliance color checks.
-- **`brandGuidelines.typography`**: Font settings for `heading`, `subheading`, and `body` levels. The heading style is used for campaign text overlay. Font stacks with generic fallbacks (e.g. `"Futura, sans-serif"`) are rendered via sharp's SVG/Pango.
+- **`brandGuidelines.typography`**: Font settings for `heading`, `subheading`, and `body` levels. The overlay uses heading for product name, body for description, and subheading for campaign message. Font stacks with generic fallbacks (e.g. `"Futura, sans-serif"`) are rendered via sharp's SVG/Pango.
 - **`brandGuidelines.identity`**: Brand description, mission, purpose, vision, and values — injected into fal.ai prompts so generated images reflect brand aesthetic.
 - **`brandGuidelines.logoPath`** (required): Path to brand logo, composited at top-left of every creative (10% width, 3% margin).
 - **`positiveKeywords`**: Encouraged terms. Compliance warns if the message contains none.
 - **`prohibitedWords`**: Banned phrases. Compliance fails if any appear in the message.
 - **`existingAssetDir`** (optional): Path to pre-existing images. Reused instead of calling GenAI — saves cost and time.
-- **`imagePrompt`**: Prompt sent to FLUX Schnell, enhanced with brand context automatically.
+- **`imagePrompt`** (optional): Prompt sent to FLUX Schnell, enhanced with brand context automatically. If omitted, a prompt is auto-generated from the product's `name` and `description`.
 - **`aspectRatios`**: Output dimensions. `1:1` → 1080×1080, `9:16` → 1080×1920, `16:9` → 1920×1080.
 
 ## Output
@@ -172,7 +171,7 @@ Results are included in `report.json` with structured `checks` objects per produ
 
 3. **Asset reuse**: Products can point to existing image directories. The pipeline checks for images there first and only calls GenAI for missing assets — reduces API calls and cost.
 
-4. **Sharp for compositing**: Using sharp's SVG/Pango renderer for text and PNG compositing for logos keeps overlay fast, offline, and free. Brand typography (font family, size, weight) and colors are applied from the brief.
+4. **Sharp for compositing**: Using sharp's SVG/Pango renderer for text and PNG compositing for logos keeps overlay fast, offline, and free. Each creative composites the product name (heading), description (body), and campaign message (subheading) in a brand-colored banner, with the logo at top-left.
 
 5. **Localization**: Single locale per run with fallback chain (exact → language-only → default). Localized messages are overlaid on creatives without changing the pipeline flow.
 

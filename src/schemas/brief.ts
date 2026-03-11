@@ -6,7 +6,7 @@ const productSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string(),
-  imagePrompt: z.string().min(1),
+  imagePrompt: z.string().min(1).optional(),
   existingAssetDir: z.string().optional(),
 });
 

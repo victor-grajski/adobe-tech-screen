@@ -77,7 +77,7 @@ export async function runPipeline(
 
   // Stage 4: Text overlay (with brand typography, logo, colors)
   end = startStage("overlay-text");
-  const composited = await overlayText(rawAssets, resolvedMessage, absOutputDir, overlayOptions);
+  const composited = await overlayText(rawAssets, resolvedMessage, brief.products, absOutputDir, overlayOptions);
   end();
 
   // Stage 5: Compliance checks (with resolved message and brand guidelines)

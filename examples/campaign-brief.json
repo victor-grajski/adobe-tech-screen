@@ -13,9 +13,8 @@
   "products": [
     {
       "id": "product-a",
-      "name": "UltraBoost Running Shoes",
-      "description": "Lightweight performance running shoes with responsive cushioning",
-      "imagePrompt": "Professional product photo of modern white running shoes on clean minimal background, studio lighting",
+      "name": "Heir Series 2",
+      "description": "Everything you need to take 'em for everything they've got. Now in 'Victory Dance.'",
       "existingAssetDir": "examples/assets/product-a"
     },
     {
@@ -43,7 +42,7 @@
       "body": { "fontFamily": "Helvetica, sans-serif", "fontSize": "18pt", "fontWeight": "normal" }
     },
     "positiveKeywords": ["Performance", "Authenticity", "Innovation", "Empowerment"],
-    "prohibitedWords": ["Cheap shoes", "Outlet shoes", "Second-hand shoes"],
+    "prohibitedWords": ["Cheap", "Outlet", "Secondhand"],
     "identity": {
       "description": "Nike, Inc is an American athletic footwear and apparel corporation. World's largest supplier of athletic shoes and apparel. The Nike logo depicts motion, speed, and success.",
       "mission": "To bring inspiration and innovation to every athlete in the world",

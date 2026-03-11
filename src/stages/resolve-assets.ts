@@ -48,11 +48,15 @@ export async function resolveAssets(
         }
       }
 
+      const imagePrompt =
+        product.imagePrompt ??
+        `Professional product photo of ${product.name}: ${product.description}, studio lighting, clean minimal background`;
+
       logger.info("resolve-assets", `Will generate ${product.id} at ${ratio}`);
       manifest.missing.push({
         productId: product.id,
         aspectRatio: ratio,
-        imagePrompt: product.imagePrompt,
+        imagePrompt,
       });
     }
   }

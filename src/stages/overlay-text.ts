@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import { mkdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
+import type { Product } from "../schemas/brief.js";
 import type { GeneratedAsset, OverlayOptions } from "../types.js";
 import { DIMENSION_MAP } from "../utils/image-helpers.js";
 import { parseFontSize } from "../utils/brand-helpers.js";
@@ -9,10 +10,12 @@ import { logger } from "../utils/logger.js";
 export async function overlayText(
   assets: GeneratedAsset[],
   campaignMessage: string,
+  products: Product[],
   outputDir: string,
   options: OverlayOptions,
 ): Promise<GeneratedAsset[]> {
   const result: GeneratedAsset[] = [];
+  const productMap = new Map(products.map((p) => [p.id, p]));
 
   // Load and prepare logo
   const logoPath = resolve(options.projectRoot, options.logoPath);
@@ -29,14 +32,18 @@ export async function overlayText(
     const destPath = resolve(outputDir, asset.productId, ratioDir, "creative.png");
     await mkdir(dirname(destPath), { recursive: true });
 
-    const bannerHeight = Math.round(dims.height * 0.15);
+    const product = productMap.get(asset.productId);
+    const productName = product?.name ?? asset.productId;
+    const productDescription = product?.description ?? "";
+
+    // Expanded banner to fit name + description + campaign message
+    const bannerHeight = Math.round(dims.height * 0.28);
     const bannerY = dims.height - bannerHeight;
 
-    // Use brand typography for heading
-    const heading = options.typography.heading;
-    const fontSize = parseFontSize(heading.fontSize, dims.width);
-    const fontFamily = heading.fontFamily;
-    const fontWeight = heading.fontWeight;
+    // Typography sizes
+    const headingSize = parseFontSize(options.typography.heading.fontSize, dims.width);
+    const bodySize = parseFontSize(options.typography.body.fontSize, dims.width);
+    const subheadingSize = parseFontSize(options.typography.subheading.fontSize, dims.width);
 
     // Create semi-transparent banner with brand background color
     const banner = Buffer.from(
@@ -46,12 +53,30 @@ export async function overlayText(
       </svg>`,
     );
 
-    // Create text overlay with brand typography and text color
-    const textY = bannerY + Math.round(bannerHeight / 2);
-    const text = Buffer.from(
+    // Layout: product name (top of banner), description (middle), campaign message (bottom)
+    const padding = Math.round(bannerHeight * 0.12);
+    const nameY = bannerY + padding + headingSize / 2;
+    const descY = nameY + headingSize / 2 + padding + bodySize / 2;
+    const messageY = bannerY + bannerHeight - padding - subheadingSize / 2;
+    const centerX = Math.round(dims.width / 2);
+
+    const textSvg = Buffer.from(
       `<svg width="${dims.width}" height="${dims.height}">
-        <text x="${Math.round(dims.width / 2)}" y="${textY}"
-              font-family="${escapeXml(fontFamily)}" font-size="${fontSize}" font-weight="${fontWeight}"
+        <text x="${centerX}" y="${Math.round(nameY)}"
+              font-family="${escapeXml(options.typography.heading.fontFamily)}"
+              font-size="${headingSize}" font-weight="${options.typography.heading.fontWeight}"
+              fill="${options.textColor}" text-anchor="middle" dominant-baseline="middle">
+          ${escapeXml(productName)}
+        </text>
+        <text x="${centerX}" y="${Math.round(descY)}"
+              font-family="${escapeXml(options.typography.body.fontFamily)}"
+              font-size="${bodySize}" font-weight="${options.typography.body.fontWeight}"
+              fill="${options.textColor}" text-anchor="middle" dominant-baseline="middle">
+          ${escapeXml(productDescription)}
+        </text>
+        <text x="${centerX}" y="${Math.round(messageY)}"
+              font-family="${escapeXml(options.typography.subheading.fontFamily)}"
+              font-size="${subheadingSize}" font-weight="${options.typography.subheading.fontWeight}"
               fill="${options.textColor}" text-anchor="middle" dominant-baseline="middle">
           ${escapeXml(campaignMessage)}
         </text>
@@ -64,7 +89,7 @@ export async function overlayText(
 
     const composites: sharp.OverlayOptions[] = [
       { input: banner, top: 0, left: 0 },
-      { input: text, top: 0, left: 0 },
+      { input: textSvg, top: 0, left: 0 },
     ];
 
     // Composite logo at top-left with 3% margin

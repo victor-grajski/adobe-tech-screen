@@ -22,7 +22,7 @@ npm run dev -- generate --brief examples/campaign-brief.json
 - `npm start -- generate --brief <path>` — Run compiled JS
 
 ## Architecture
-Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-images → overlay-text → compliance → upload-assets. Orchestrated by `src/pipeline.ts`, CLI in `src/index.ts`.
+Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-images → overlay-text → compliance → upload-assets. Orchestrated by `src/pipeline.ts`, CLI in `src/index.ts`. The overlay stage composites product name (heading), description (body), and campaign message (subheading) onto a brand-colored banner, plus logo at top-left.
 
 ## File Structure
 - `src/index.ts` — CLI entry point (commander)
@@ -41,7 +41,7 @@ Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-im
 ## Brand Guidelines Schema
 The brief's `brandGuidelines` object includes:
 - `colors` — `text`, `background`, and `accent[]` (hex + description)
-- `typography` — `heading`, `subheading`, `body` (fontFamily, fontSize, fontWeight)
+- `typography` — `heading` (product name), `subheading` (campaign message), `body` (product description) with fontFamily, fontSize, fontWeight
 - `identity` — `description`, `mission`, `purpose`, `vision`, `values[]`
 - `positiveKeywords[]` — Terms encouraged in campaign messaging
 - `prohibitedWords[]` — Phrases that fail compliance
