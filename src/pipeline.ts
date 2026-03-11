@@ -1,13 +1,14 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { AppConfig } from "./config.js";
-import type { PipelineResult } from "./types.js";
+import type { OverlayOptions, PipelineResult } from "./types.js";
 import { parseBrief } from "./stages/parse-brief.js";
 import { resolveAssets } from "./stages/resolve-assets.js";
 import { generateImages } from "./stages/generate-images.js";
 import { overlayText } from "./stages/overlay-text.js";
 import { runComplianceChecks } from "./stages/compliance.js";
 import { uploadAssets } from "./stages/upload-assets.js";
+import { resolveLocalizedMessage } from "./utils/brand-helpers.js";
 import { logger } from "./utils/logger.js";
 
 export async function runPipeline(
@@ -34,24 +35,48 @@ export async function runPipeline(
   const brief = await parseBrief(briefPath);
   end();
 
+  // Resolve localized message and build overlay options
+  const resolvedMessage = resolveLocalizedMessage(brief.campaign);
+  const { brandGuidelines } = brief;
+
+  // Banner uses text color as background when the brand background is light;
+  // overlay text uses the opposite color for contrast.
+  const useDarkBanner = brandGuidelines.colors.background.toUpperCase() >= "#C00000";
+  const bannerBackground = useDarkBanner
+    ? brandGuidelines.colors.text
+    : brandGuidelines.colors.background;
+  const overlayTextColor = useDarkBanner
+    ? brandGuidelines.colors.background
+    : brandGuidelines.colors.text;
+
+  const overlayOptions: OverlayOptions = {
+    typography: brandGuidelines.typography,
+    textColor: overlayTextColor,
+    bannerBackground,
+    logoPath: brandGuidelines.logoPath,
+    projectRoot,
+  };
+
+  logger.info("pipeline", `Locale: ${brief.campaign.locale}, resolved message: "${resolvedMessage}"`);
+
   // Stage 2: Resolve existing assets
   end = startStage("resolve-assets");
   const manifest = await resolveAssets(brief, projectRoot);
   end();
 
-  // Stage 3: Generate missing images
+  // Stage 3: Generate missing images (with brand context in prompts)
   end = startStage("generate-images");
-  const rawAssets = await generateImages(manifest, absOutputDir, config.falKey);
+  const rawAssets = await generateImages(manifest, absOutputDir, config.falKey, brandGuidelines);
   end();
 
-  // Stage 4: Text overlay
+  // Stage 4: Text overlay (with brand typography, logo, colors)
   end = startStage("overlay-text");
-  const composited = await overlayText(rawAssets, brief.campaign.message, absOutputDir);
+  const composited = await overlayText(rawAssets, resolvedMessage, absOutputDir, overlayOptions);
   end();
 
-  // Stage 5: Compliance checks
+  // Stage 5: Compliance checks (with resolved message and brand guidelines)
   end = startStage("compliance");
-  const compliance = await runComplianceChecks(composited, brief);
+  const compliance = await runComplianceChecks(composited, resolvedMessage, brandGuidelines, projectRoot);
   end();
 
   // Stage 6: Upload to Cloudinary
@@ -72,7 +97,15 @@ export async function runPipeline(
   const reportPath = resolve(absOutputDir, "report.json");
   const report = {
     campaign: brief.campaign.name,
+    locale: brief.campaign.locale,
+    resolvedMessage,
     generatedAt: new Date().toISOString(),
+    brandIdentity: {
+      description: brandGuidelines.identity.description,
+      mission: brandGuidelines.identity.mission,
+      vision: brandGuidelines.identity.vision,
+      values: brandGuidelines.identity.values,
+    },
     products: brief.products.map((p) => ({
       id: p.id,
       name: p.name,

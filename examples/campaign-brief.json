@@ -2,6 +2,10 @@
   "campaign": {
     "name": "Summer Sale 2025",
     "message": "Up to 50% Off — Limited Time Only",
+    "localizedMessages": {
+      "es-MX": "Hasta 50% de Descuento — Solo por Tiempo Limitado",
+      "fr-FR": "Jusqu'a 50% de Reduction — Offre Limitee"
+    },
     "region": "US",
     "locale": "en-US",
     "audience": "Young professionals aged 25-35"
@@ -16,15 +20,38 @@
     },
     {
       "id": "product-b",
-      "name": "CloudWalk Sandals",
-      "description": "Comfortable everyday sandals with memory foam insole",
-      "imagePrompt": "Professional product photo of stylish brown leather sandals on clean minimal background, studio lighting"
+      "name": "AeroStride Training Shorts",
+      "description": "Breathable athletic shorts with four-way stretch fabric and zippered pockets",
+      "imagePrompt": "Professional product photo of black and orange athletic training shorts laid flat on clean minimal white background, studio lighting, sportswear catalog style"
     }
   ],
   "brandGuidelines": {
-    "primaryColor": "#FF5733",
-    "secondaryColor": "#1A1A2E",
-    "prohibitedWords": ["cheap", "guarantee", "miracle"]
+    "colors": {
+      "text": "#111111",
+      "background": "#FEFEFE",
+      "accent": [
+        { "hex": "#D1CDC9", "description": "Light warm gray" },
+        { "hex": "#111111", "description": "Near black" },
+        { "hex": "#101010", "description": "Deep black" },
+        { "hex": "#FEFEFE", "description": "Off white" },
+        { "hex": "#D1C481", "description": "Muted gold" }
+      ]
+    },
+    "typography": {
+      "heading": { "fontFamily": "Futura, sans-serif", "fontSize": "50pt", "fontWeight": "bold" },
+      "subheading": { "fontFamily": "Trade Gothic, sans-serif", "fontSize": "34pt", "fontWeight": "normal" },
+      "body": { "fontFamily": "Helvetica, sans-serif", "fontSize": "18pt", "fontWeight": "normal" }
+    },
+    "positiveKeywords": ["Performance", "Authenticity", "Innovation", "Empowerment"],
+    "prohibitedWords": ["Cheap shoes", "Outlet shoes", "Second-hand shoes"],
+    "identity": {
+      "description": "Nike, Inc is an American athletic footwear and apparel corporation. World's largest supplier of athletic shoes and apparel. The Nike logo depicts motion, speed, and success.",
+      "mission": "To bring inspiration and innovation to every athlete in the world",
+      "purpose": "To move the world forward through the power of sport",
+      "vision": "To do everything possible to expand human potential",
+      "values": ["Inspiration", "Innovation", "Every athlete in the world", "Authentic", "Connected", "Distinctive"]
+    },
+    "logoPath": "examples/assets/brand/logo.png"
   },
   "aspectRatios": ["1:1", "9:16", "16:9"]
 }

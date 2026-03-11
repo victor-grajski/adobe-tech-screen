@@ -1,16 +1,20 @@
 import { fal } from "@fal-ai/client";
 import { resolve } from "node:path";
+import type { BrandGuidelines } from "../schemas/brief.js";
 import type { AssetManifest, GeneratedAsset } from "../types.js";
 import { DIMENSION_MAP, downloadImage } from "../utils/image-helpers.js";
+import { buildBrandPromptContext } from "../utils/brand-helpers.js";
 import { logger } from "../utils/logger.js";
 
 export async function generateImages(
   manifest: AssetManifest,
   outputDir: string,
   falKey: string,
+  brandGuidelines: BrandGuidelines,
 ): Promise<GeneratedAsset[]> {
   fal.config({ credentials: falKey });
 
+  const brandContext = buildBrandPromptContext(brandGuidelines);
   const assets: GeneratedAsset[] = [];
 
   // Include reused assets as-is
@@ -29,6 +33,8 @@ export async function generateImages(
     const ratioDir = item.aspectRatio.replace(":", "x");
     const destPath = resolve(outputDir, item.productId, ratioDir, "creative.png");
 
+    const enhancedPrompt = `${item.imagePrompt}. ${brandContext}`;
+
     logger.info(
       "generate-images",
       `Generating ${item.productId} at ${item.aspectRatio} (${dims.width}x${dims.height})`,
@@ -36,7 +42,7 @@ export async function generateImages(
 
     const result = await fal.subscribe("fal-ai/flux/schnell", {
       input: {
-        prompt: item.imagePrompt,
+        prompt: enhancedPrompt,
         image_size: { width: dims.width, height: dims.height },
         num_images: 1,
         num_inference_steps: 4,

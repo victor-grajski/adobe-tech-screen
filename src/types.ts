@@ -19,10 +19,29 @@ export interface GeneratedAsset {
   reused: boolean;
 }
 
+export interface OverlayOptions {
+  typography: {
+    heading: { fontFamily: string; fontSize: string; fontWeight: string };
+    subheading: { fontFamily: string; fontSize: string; fontWeight: string };
+    body: { fontFamily: string; fontSize: string; fontWeight: string };
+  };
+  textColor: string;
+  bannerBackground: string;
+  logoPath: string;
+  projectRoot: string;
+}
+
 export interface ComplianceResult {
   productId: string;
   passed: boolean;
   issues: string[];
+  warnings: string[];
+  checks: {
+    prohibitedWords: { passed: boolean; flagged: string[] };
+    brandColor: { passed: boolean; closestColor: string; distance: number };
+    logoPresent: { passed: boolean };
+    positiveKeywords: { passed: boolean; found: string[]; suggested: string[] };
+  };
 }
 
 export interface UploadedAsset {
