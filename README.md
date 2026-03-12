@@ -285,7 +285,6 @@ The tradeoff is complexity: a Figma plugin requires its own build toolchain (Rea
 - **Font rendering**: Uses system fonts via sharp's SVG/Pango renderer. Futura and Helvetica render natively on macOS; Trade Gothic falls back to `sans-serif`. No bundled font files.
 - **Single locale per run**: The pipeline resolves one locale per execution. Run multiple times for multi-locale campaigns (see multi-locale batch mode in Future Directions).
 - **Prohibited words are language-agnostic**: English-only keyword matching regardless of locale.
-- **Logo is a placeholder**: The included `examples/assets/brand/logo.png` is a geometric placeholder shape.
 - **Approximate color compliance**: GenAI images rarely match brand colors exactly, so the color distance threshold is lenient (150).
 
 ## Tech Stack
