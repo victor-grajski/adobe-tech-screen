@@ -270,6 +270,26 @@ The current success metrics measure pipeline performance (speed, throughput). Ad
 
 A `--dry-run` flag that skips image generation and upload but runs all other stages (brief validation, asset resolution, compliance on existing assets). Useful for validating briefs before spending API credits, and for CI integration.
 
+### Security & Secrets Management
+
+API keys (`FAL_KEY`, `CLOUDINARY_URL`) are loaded from `.env` files today. A production deployment would integrate with a secrets vault (e.g. AWS Secrets Manager, HashiCorp Vault) for credential storage, rotation, and audit. Uploaded Cloudinary assets use deterministic public IDs with no access control — adding signed URLs, expiration policies, and geo-restricted delivery would prevent unauthorized access to brand creatives.
+
+### Privacy & Data Governance (GDPR / CCPA)
+
+The pipeline currently passes audience data and brand content to third-party APIs (fal.ai, Cloudinary) without data classification or minimization. For production use in EU/CA markets, this would need: PII scrubbing before external API calls, data processing agreements with third-party providers, configurable retention and deletion policies for generated assets and `report.json`, and data subject request support. The brief schema could be extended with a `dataClassification` field to flag sensitive content before it enters the pipeline.
+
+### Audit Logging & Observability
+
+Pipeline runs produce console output and a local `report.json` but no persistent audit trail. Structured logging (e.g. Pino with JSON output) piped to a centralized log store would enable: traceability of who ran what brief and when, compliance audit trails for generated content, alerting on pipeline failures or policy violations, and integration with existing observability stacks (Datadog, Splunk, ELK).
+
+### Access Control & Multi-Tenancy
+
+The CLI runs as the current OS user with no authentication or authorization. Wrapping the pipeline in an API service would require: authn/authz (OAuth 2.0, API keys with scopes), tenant isolation for brand assets and configuration, role-based access (e.g. creative directors approve, marketers trigger runs), and rate limiting per tenant to manage API costs.
+
+### Deployment & Infrastructure
+
+The pipeline runs locally today with no containerization or CI/CD. Production deployment considerations include: Docker container with pinned dependencies and system fonts, cloud vs. on-premise decision based on data sensitivity (brand assets and generated creatives may need to stay within corporate networks), environment separation (dev/staging/prod) with distinct API keys and storage buckets, and infrastructure-as-code (Terraform, Pulumi) for reproducible deployments.
+
 ### Figma Plugin
 
 A Figma plugin could replace sharp-based compositing with Figma's rendering engine, giving designers direct control over creative layout:
