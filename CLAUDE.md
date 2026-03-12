@@ -22,7 +22,7 @@ npm run dev -- generate --brief examples/campaign-brief.json
 - `npm start -- generate --brief <path>` — Run compiled JS
 
 ## Architecture
-Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-images → overlay-text → compliance → upload-assets. Orchestrated by `src/pipeline.ts`, CLI in `src/index.ts`. The overlay stage composites product name (heading), description (body), and campaign message (subheading) onto a brand-colored banner, plus logo at top-left.
+Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-images → overlay-text → compliance → upload-assets. Orchestrated by `src/pipeline.ts`, CLI in `src/index.ts`. The overlay stage composites product name (heading), description (body), and campaign message (subheading) onto a near-black semi-transparent banner with white text, plus logo at top-left.
 
 ## File Structure
 - `src/index.ts` — CLI entry point (commander)
@@ -33,7 +33,7 @@ Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-im
 - `src/stages/` — One file per pipeline stage
 - `src/utils/logger.ts` — Colored console logger
 - `src/utils/image-helpers.ts` — Image download + dimension map
-- `src/utils/brand-helpers.ts` — Locale resolution (message + product fields), brand color aggregation, font size parsing, prompt context builder
+- `src/utils/brand-helpers.ts` — Locale resolution (message + product fields), brand color aggregation, font size parsing, prompt context builder, WCAG relative luminance
 - `src/utils/metrics.ts` — Success metrics computation (time saved, volume, efficiency)
 - `examples/` — Sample campaign brief + pre-existing assets + brand logo
 - `output/` — Generated output (gitignored)

@@ -46,15 +46,9 @@ export async function runPipeline(
   const resolvedMessage = resolveLocalizedMessage(brief.campaign);
   const { brandGuidelines } = brief;
 
-  // Banner uses text color as background when the brand background is light;
-  // overlay text uses the opposite color for contrast.
-  const useDarkBanner = brandGuidelines.colors.background.toUpperCase() >= "#C00000";
-  const bannerBackground = useDarkBanner
-    ? brandGuidelines.colors.text
-    : brandGuidelines.colors.background;
-  const overlayTextColor = useDarkBanner
-    ? brandGuidelines.colors.background
-    : brandGuidelines.colors.text;
+  // Near-black semi-transparent banner with white text for readability.
+  const bannerBackground = "#111111";
+  const overlayTextColor = "#FEFEFE";
 
   const overlayOptions: OverlayOptions = {
     typography: brandGuidelines.typography,

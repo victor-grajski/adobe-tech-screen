@@ -21,7 +21,7 @@ Campaign Brief (JSON)
        ▼
 [4] Text Overlay (sharp)
        │   product name (heading) + description (body) + campaign message (subheading)
-       │   brand typography + logo composite + brand-colored banner
+       │   brand typography + logo composite + dark semi-transparent banner + white text
        │
        ▼
 [5] Compliance Checks
@@ -215,7 +215,7 @@ Example CLI output:
 
 3. **Asset reuse**: Products can point to existing image directories. The pipeline checks for images there first and only calls GenAI for missing assets — reduces API calls and cost.
 
-4. **Sharp for compositing**: Using sharp's SVG/Pango renderer for text and PNG compositing for logos keeps overlay fast, offline, and free. Each creative composites the product name (heading), description (body), and campaign message (subheading) in a brand-colored banner, with the logo at top-left.
+4. **Sharp for compositing**: Using sharp's SVG/Pango renderer for text and PNG compositing for logos keeps overlay fast, offline, and free. Each creative composites the product name (heading), description (body), and campaign message (subheading) on a near-black semi-transparent banner with white text, with the logo at top-left.
 
 5. **Localization**: Single locale per run with fallback chain (exact → language-only → default). Both campaign messages and product fields (name, description) are localized, so creatives are fully rendered in the target language.
 
@@ -229,9 +229,46 @@ Example CLI output:
 
 ## Future Directions
 
-### Parallel Generation
+### Test Suite
 
-Products are generated sequentially today. Since each product's images are independent, they could be generated concurrently with `Promise.all` — turning wall time from `N * products` API calls to roughly 1x. Similarly, a multi-locale mode could generate base images once and fan out the overlay stage per locale, avoiding redundant image generation for each language.
+The utility layer (`brand-helpers.ts`, `metrics.ts`, Zod schema, compliance logic) is composed of pure functions with no side effects — ideal candidates for unit testing with vitest. Priority test targets: locale fallback chains, font size parsing, success metrics computation, prohibited word matching, and schema validation edge cases.
+
+### Concurrent Image Generation
+
+Products are generated sequentially today. Since each product's images are independent, they could be generated concurrently with bounded `Promise.all` (concurrency of 3–4 to respect API rate limits) — turning wall time from `N * products` API calls to roughly 1x.
+
+### Retry with Exponential Backoff
+
+A generic `withRetry` utility with exponential backoff would make the pipeline resilient to transient API failures. Applied to fal.ai image generation, image downloads, and Cloudinary uploads, it would prevent a single network blip from crashing the entire run.
+
+### Deeper Compliance Checks
+
+- **All-text scanning**: Prohibited words currently only checks the campaign message. Extending to product names and descriptions would catch more violations.
+- **WCAG contrast ratio**: Verify that overlay text color against banner background meets WCAG AA (4.5:1 minimum). The pipeline already computes relative luminance — adding a contrast ratio check would catch illegible text combinations.
+
+### A/B Variant Generation
+
+The spec calls for "generating variations for campaign assets." A `--variants <n>` CLI flag would generate multiple creative variants per product/ratio with prompt variations (e.g. "dynamic composition", "close-up product focus", "lifestyle context"). This directly addresses the ideation business goal — a creative director reviews 3 options per format instead of a single take-it-or-leave-it output.
+
+### Text Overflow Handling
+
+Long product names or descriptions can exceed the banner width and silently clip. Character-width estimation with ellipsis truncation would handle edge cases gracefully.
+
+### Graceful Per-Asset Error Handling
+
+Currently any single asset failure crashes the pipeline. Wrapping per-asset operations in try-catch with a `status: "success" | "failed"` field would allow the pipeline to continue processing remaining assets and report failures in `report.json`.
+
+### Multi-Locale Batch Mode
+
+A `--locales es-MX,fr-FR,en-US` flag would generate base images once and fan out the overlay stage per locale — avoiding redundant image generation (the most expensive step) while producing localized creatives for all markets in a single run.
+
+### Mock Campaign Analytics
+
+The current success metrics measure pipeline performance (speed, throughput). Adding simulated engagement predictions based on creative attributes (aspect ratio, brand color alignment, keyword density) would address business goal #5 — "track effectiveness at scale and learn what content drives the best business outcomes." Even mock heuristics turn `report.json` from an operational log into a creative intelligence report.
+
+### Dry-Run / Preview Mode
+
+A `--dry-run` flag that skips image generation and upload but runs all other stages (brief validation, asset resolution, compliance on existing assets). Useful for validating briefs before spending API credits, and for CI integration.
 
 ### Figma Plugin
 
@@ -246,12 +283,10 @@ The tradeoff is complexity: a Figma plugin requires its own build toolchain (Rea
 ## Known Limitations
 
 - **Font rendering**: Uses system fonts via sharp's SVG/Pango renderer. Futura and Helvetica render natively on macOS; Trade Gothic falls back to `sans-serif`. No bundled font files.
-- **Single locale per run**: The pipeline resolves one locale per execution. Run multiple times for multi-locale campaigns.
-- **Sequential generation**: Products are generated one at a time — could parallelize with `Promise.all` for production use.
+- **Single locale per run**: The pipeline resolves one locale per execution. Run multiple times for multi-locale campaigns (see multi-locale batch mode in Future Directions).
 - **Prohibited words are language-agnostic**: English-only keyword matching regardless of locale.
 - **Logo is a placeholder**: The included `examples/assets/brand/logo.png` is a geometric placeholder shape.
 - **Approximate color compliance**: GenAI images rarely match brand colors exactly, so the color distance threshold is lenient (150).
-- No retry/backoff on fal.ai API failures (would add for production use).
 
 ## Tech Stack
 

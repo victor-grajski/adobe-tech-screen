@@ -53,7 +53,7 @@ export async function overlayText(
     const banner = Buffer.from(
       `<svg width="${dims.width}" height="${dims.height}">
         <rect x="0" y="${bannerY}" width="${dims.width}" height="${bannerHeight}"
-              fill="${options.bannerBackground}" opacity="0.6"/>
+              fill="${options.bannerBackground}" opacity="0.75"/>
       </svg>`,
     );
 
