@@ -1,4 +1,6 @@
-import type { CampaignBrief, BrandGuidelines, BrandColors, Product } from "../schemas/brief.js";
+import type { CampaignBrief, BrandGuidelines, BrandColors, Product, AspectRatio } from "../schemas/brief.js";
+import type { LogoPlacement } from "../types.js";
+import { DIMENSION_MAP } from "./image-helpers.js";
 
 /**
  * Resolves the campaign message for the current locale.
@@ -113,4 +115,20 @@ export function buildBrandPromptContext(guidelines: BrandGuidelines): string {
   context += `Leave clean space in upper-left corner and bottom 15% for text overlay`;
 
   return context;
+}
+
+/**
+ * Computes the logo bounding box for a given aspect ratio and logo intrinsic dimensions.
+ * Mirrors the placement logic used in overlay-text.
+ */
+export function computeLogoPlacement(
+  aspectRatio: AspectRatio,
+  logoIntrinsic: { width: number; height: number },
+): LogoPlacement {
+  const dims = DIMENSION_MAP[aspectRatio];
+  const logoScale = aspectRatio === "16:9" ? 0.1 : 0.18;
+  const logoWidth = Math.round(dims.width * logoScale);
+  const logoHeight = Math.round(logoWidth * (logoIntrinsic.height / logoIntrinsic.width));
+  const margin = Math.round(dims.width * 0.03);
+  return { x: margin, y: margin, width: logoWidth, height: logoHeight };
 }

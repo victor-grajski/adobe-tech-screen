@@ -1,5 +1,7 @@
 import type { AspectRatio, CampaignBrief } from "./schemas/brief.js";
 
+export interface LogoPlacement { x: number; y: number; width: number; height: number }
+
 export interface AssetEntry {
   productId: string;
   aspectRatio: AspectRatio;
@@ -33,6 +35,7 @@ export interface OverlayOptions {
 
 export interface ComplianceResult {
   productId: string;
+  aspectRatio: string;
   passed: boolean;
   issues: string[];
   warnings: string[];
@@ -51,6 +54,33 @@ export interface UploadedAsset {
   cloudinaryUrl?: string;
 }
 
+export interface SuccessMetrics {
+  timeSaved: {
+    manualEstimateMs: number;
+    pipelineMs: number;
+    savedMs: number;
+    speedupFactor: string;
+    manualPerCreativeFormatted: string;
+    manualEstimateFormatted: string;
+    pipelineFormatted: string;
+    savedFormatted: string;
+  };
+  volume: {
+    totalCreatives: number;
+    productsProcessed: number;
+    aspectRatiosPerProduct: number;
+    assetsGenerated: number;
+    assetsReused: number;
+    locale: string;
+  };
+  efficiency: {
+    assetReuseRate: string;
+    compliancePassRate: string;
+    throughputPerMinute: string;
+    stageBreakdown: Record<string, string>;
+  };
+}
+
 export interface PipelineResult {
   brief: CampaignBrief;
   assets: UploadedAsset[];
@@ -59,4 +89,5 @@ export interface PipelineResult {
     total: number;
     stages: Record<string, number>;
   };
+  successMetrics: SuccessMetrics;
 }

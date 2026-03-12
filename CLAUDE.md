@@ -26,14 +26,15 @@ Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-im
 
 ## File Structure
 - `src/index.ts` — CLI entry point (commander)
-- `src/pipeline.ts` — Stage orchestrator, localization resolution, overlay options wiring, report generation
+- `src/pipeline.ts` — Stage orchestrator, localization resolution, overlay options wiring, report generation, success metrics
 - `src/config.ts` — Env var loading/validation
-- `src/types.ts` — Shared TypeScript types (OverlayOptions, ComplianceResult with structured checks)
+- `src/types.ts` — Shared TypeScript types (OverlayOptions, ComplianceResult, SuccessMetrics)
 - `src/schemas/brief.ts` — Zod schema for campaign brief (brand colors, typography, identity, logo, localized messages)
 - `src/stages/` — One file per pipeline stage
 - `src/utils/logger.ts` — Colored console logger
 - `src/utils/image-helpers.ts` — Image download + dimension map
 - `src/utils/brand-helpers.ts` — Locale resolution (message + product fields), brand color aggregation, font size parsing, prompt context builder
+- `src/utils/metrics.ts` — Success metrics computation (time saved, volume, efficiency)
 - `examples/` — Sample campaign brief + pre-existing assets + brand logo
 - `output/` — Generated output (gitignored)
 - `dist/` — Compiled JS (gitignored)
@@ -58,6 +59,14 @@ Four structured checks per product:
 2. **Brand color** — dominant color distance against all brand colors (soft warning)
 3. **Logo present** — verifies logo file exists (hard failure)
 4. **Positive keywords** — checks message for brand keywords, suggests missing ones (soft warning)
+
+## Success Metrics
+The pipeline computes and reports three categories of success metrics (in CLI output and `report.json`):
+- **Time saved** — Manual estimate (30 min/creative baseline) vs pipeline time, speedup factor
+- **Volume** — Total creatives, products processed, aspect ratios, assets generated vs reused, locale
+- **Efficiency** — Asset reuse rate, compliance pass rate, throughput (creatives/min), per-stage breakdown
+
+Computed in `src/utils/metrics.ts`, wired through `src/pipeline.ts`, displayed in `src/index.ts`.
 
 ## Environment Variables
 - `FAL_KEY` — fal.ai API key (required)

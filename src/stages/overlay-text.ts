@@ -4,7 +4,7 @@ import { dirname, resolve } from "node:path";
 import type { Product } from "../schemas/brief.js";
 import type { GeneratedAsset, OverlayOptions } from "../types.js";
 import { DIMENSION_MAP } from "../utils/image-helpers.js";
-import { parseFontSize } from "../utils/brand-helpers.js";
+import { parseFontSize, computeLogoPlacement } from "../utils/brand-helpers.js";
 import { logger } from "../utils/logger.js";
 
 export async function overlayText(
@@ -20,8 +20,11 @@ export async function overlayText(
   // Load and prepare logo
   const logoPath = resolve(options.projectRoot, options.logoPath);
   let logoBuffer: Buffer | null = null;
+  let logoMeta: { width: number; height: number } | null = null;
   try {
     logoBuffer = await readFile(logoPath);
+    const meta = await sharp(logoBuffer).metadata();
+    logoMeta = { width: meta.width!, height: meta.height! };
   } catch {
     logger.warn("overlay-text", `Logo not found at ${logoPath}, skipping logo composite`);
   }
@@ -62,12 +65,10 @@ export async function overlayText(
     const centerX = Math.round(dims.width / 2);
 
     let logoSvgElement = "";
-    if (logoBuffer) {
-      const logoScale = asset.aspectRatio === "16:9" ? 0.1 : 0.18;
-      const logoWidth = Math.round(dims.width * logoScale);
-      const margin = Math.round(dims.width * 0.03);
+    if (logoBuffer && logoMeta) {
+      const placement = computeLogoPlacement(asset.aspectRatio, logoMeta);
       const logoB64 = logoBuffer.toString("base64");
-      logoSvgElement = `<image x="${margin}" y="${margin}" width="${logoWidth}" href="data:image/png;base64,${logoB64}" preserveAspectRatio="xMinYMin meet"/>`;
+      logoSvgElement = `<image x="${placement.x}" y="${placement.y}" width="${placement.width}" href="data:image/png;base64,${logoB64}" preserveAspectRatio="xMinYMin meet"/>`;
     }
 
     const textSvg = Buffer.from(

@@ -9,6 +9,7 @@ import { overlayText } from "./stages/overlay-text.js";
 import { runComplianceChecks } from "./stages/compliance.js";
 import { uploadAssets } from "./stages/upload-assets.js";
 import { resolveLocalizedMessage, resolveLocalizedProduct } from "./utils/brand-helpers.js";
+import { computeSuccessMetrics } from "./utils/metrics.js";
 import { logger } from "./utils/logger.js";
 
 export async function runPipeline(
@@ -96,11 +97,17 @@ export async function runPipeline(
 
   const totalTime = Date.now() - totalStart;
 
+  const successMetrics = computeSuccessMetrics(
+    brief, rawAssets, composited, compliance,
+    { total: totalTime, stages: timing },
+  );
+
   const result: PipelineResult = {
     brief,
     assets: uploaded,
     compliance,
     timing: { total: totalTime, stages: timing },
+    successMetrics,
   };
 
   // Write report
@@ -132,6 +139,7 @@ export async function runPipeline(
     })),
     compliance,
     timing: { total: totalTime, stages: timing },
+    successMetrics,
   };
   await writeFile(reportPath, JSON.stringify(report, null, 2));
   logger.info("pipeline", `Report written to ${reportPath}`);

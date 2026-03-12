@@ -154,7 +154,7 @@ output/
   report.json              # Structured pipeline results
 ```
 
-The `report.json` includes: locale and resolved message, brand identity, products processed, assets reused vs. generated, structured compliance results (per-check breakdowns with issues and warnings), Cloudinary URLs (if uploaded), and per-stage timing.
+The `report.json` includes: locale and resolved message, brand identity, products processed, assets reused vs. generated, structured compliance results (per-check breakdowns with issues and warnings), Cloudinary URLs (if uploaded), per-stage timing, and success metrics (time saved, volume, efficiency).
 
 ## Compliance
 
@@ -168,6 +168,44 @@ Four structured checks run per product:
 | Positive keywords | Soft warning | Checks for encouraged terms, suggests missing ones |
 
 Results are included in `report.json` with structured `checks` objects per product.
+
+## Success Metrics
+
+The pipeline computes and displays three categories of success metrics in both the CLI summary and `report.json`:
+
+| Category | Metrics |
+|----------|---------|
+| **Time Saved** | Manual estimate (30 min/creative baseline), pipeline time, time saved, speedup factor |
+| **Volume** | Total creatives, products processed, aspect ratios, assets generated vs reused, locale |
+| **Efficiency** | Asset reuse rate, compliance pass rate, throughput (creatives/min), per-stage time breakdown |
+
+Example CLI output:
+```
+========================================
+  Pipeline Complete
+========================================
+  Campaign:    Summer Sale 2025
+  Locale:      fr-FR
+  Assets:      6
+----------------------------------------
+  Time Saved
+    Manual estimate:  3.0 hours
+    Pipeline time:    19.8 seconds
+    Time saved:       3.0 hours
+    Speedup:          546x faster
+----------------------------------------
+  Volume
+    Creatives:    6 (2 products x 3 ratios)
+    Generated:    3 new, 3 reused
+----------------------------------------
+  Efficiency
+    Reuse rate:       50.0%
+    Compliance:       100.0% pass rate
+    Throughput:       18.2 creatives/min
+----------------------------------------
+  Output:  output/
+========================================
+```
 
 ## Design Decisions
 
