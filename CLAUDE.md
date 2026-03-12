@@ -33,7 +33,7 @@ Pipeline stages in `src/stages/`: parse-brief → resolve-assets → generate-im
 - `src/stages/` — One file per pipeline stage
 - `src/utils/logger.ts` — Colored console logger
 - `src/utils/image-helpers.ts` — Image download + dimension map
-- `src/utils/brand-helpers.ts` — Locale resolution, brand color aggregation, font size parsing, prompt context builder
+- `src/utils/brand-helpers.ts` — Locale resolution (message + product fields), brand color aggregation, font size parsing, prompt context builder
 - `examples/` — Sample campaign brief + pre-existing assets + brand logo
 - `output/` — Generated output (gitignored)
 - `dist/` — Compiled JS (gitignored)
@@ -49,6 +49,8 @@ The brief's `brandGuidelines` object includes:
 
 ## Localization
 Set `campaign.locale` (e.g. `"es-MX"`) and provide `campaign.localizedMessages` as a locale-to-string map. The pipeline resolves the message with exact match → language-only fallback → default `message`. The CLI `--locale` flag overrides the brief's locale.
+
+Products support per-locale `localizedFields` (name, description) using the same fallback chain. When a locale is active, product names and descriptions on creatives are rendered in the target language.
 
 ## Compliance Checks
 Four structured checks per product:

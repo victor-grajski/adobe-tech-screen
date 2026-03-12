@@ -14,20 +14,28 @@
     {
       "id": "product-a",
       "name": "Heir Series 2",
-      "description": "Everything you need to take 'em for everything they've got. Now in 'Victory Dance.'",
-      "existingAssetDir": "examples/assets/product-a"
+      "description": "Take 'em for everything they've got.",
+      "existingAssetDir": "examples/assets/product-a",
+      "localizedFields": {
+        "es-MX": { "name": "Heir Series 2", "description": "Llévate todo lo que tienen." },
+        "fr-FR": { "name": "Heir Series 2", "description": "Prenez-leur tout ce qu'ils ont." }
+      }
     },
     {
       "id": "product-b",
-      "name": "AeroStride Training Shorts",
-      "description": "Breathable athletic shorts with four-way stretch fabric and zippered pockets",
-      "imagePrompt": "Professional product photo of black and orange athletic training shorts laid flat on clean minimal white background, studio lighting, sportswear catalog style"
+      "name": "AeroStride Running Shoes",
+      "description": "Cut for the modern game.",
+      "imagePrompt": "Professional product photo of an athlete wearing sleek, modern running shoes in an urban setting. low-lit background. sportswear ad style. focus on the shoes.",
+      "localizedFields": {
+        "es-MX": { "name": "AeroStride Zapatillas", "description": "Diseñadas para el juego moderno." },
+        "fr-FR": { "name": "AeroStride Chaussures", "description": "Conçues pour le jeu moderne." }
+      }
     }
   ],
   "brandGuidelines": {
     "colors": {
-      "text": "#111111",
-      "background": "#FEFEFE",
+      "text": "#FEFEFE",
+      "background": "#111111",
       "accent": [
         { "hex": "#D1CDC9", "description": "Light warm gray" },
         { "hex": "#111111", "description": "Near black" },
@@ -37,9 +45,9 @@
       ]
     },
     "typography": {
-      "heading": { "fontFamily": "Futura, sans-serif", "fontSize": "50pt", "fontWeight": "bold" },
+      "heading": { "fontFamily": "Futura, sans-serif", "fontSize": "72pt", "fontWeight": "bold" },
       "subheading": { "fontFamily": "Trade Gothic, sans-serif", "fontSize": "34pt", "fontWeight": "normal" },
-      "body": { "fontFamily": "Helvetica, sans-serif", "fontSize": "18pt", "fontWeight": "normal" }
+      "body": { "fontFamily": "Helvetica, sans-serif", "fontSize": "28pt", "fontWeight": "normal" }
     },
     "positiveKeywords": ["Performance", "Authenticity", "Innovation", "Empowerment"],
     "prohibitedWords": ["Cheap", "Outlet", "Secondhand"],

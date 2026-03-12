@@ -16,7 +16,7 @@ Campaign Brief (JSON)
        │
        ▼
 [3] Generate Missing Images (fal.ai FLUX Schnell)
-       │   brand context injected into prompts (colors, aesthetic, values)
+       │   brand context + audience injected into prompts
        │
        ▼
 [4] Text Overlay (sharp)
@@ -55,7 +55,7 @@ cp .env.example .env
 
 ```bash
 # Run with tsx (development)
-npm run dev -- generate --brief examples/campaign-brief.json
+npm run dev:example
 
 # Override locale (uses matching localizedMessages entry)
 npm run dev -- generate --brief examples/campaign-brief.json --locale es-MX
@@ -87,8 +87,12 @@ npm run dev -- generate --brief examples/campaign-brief.json --output my-output
     {
       "id": "product-a",
       "name": "Heir Series 2",
-      "description": "Everything you need to take 'em for everything they've got.",
-      "existingAssetDir": "examples/assets/product-a"
+      "description": "Take 'em for everything they've got.",
+      "existingAssetDir": "examples/assets/product-a",
+      "localizedFields": {
+        "es-MX": { "name": "Heir Series 2", "description": "Llévate todo lo que tienen." },
+        "fr-FR": { "name": "Heir Series 2", "description": "Prenez-leur tout ce qu'ils ont." }
+      }
     }
   ],
   "brandGuidelines": {
@@ -106,7 +110,7 @@ npm run dev -- generate --brief examples/campaign-brief.json --output my-output
       "body": { "fontFamily": "Helvetica, sans-serif", "fontSize": "18pt", "fontWeight": "normal" }
     },
     "positiveKeywords": ["Performance", "Authenticity", "Innovation", "Empowerment"],
-    "prohibitedWords": ["Cheap shoes", "Outlet shoes"],
+    "prohibitedWords": ["Cheap", "Outlet", "Secondhand"],
     "identity": {
       "description": "Athletic footwear and apparel brand",
       "mission": "To bring inspiration and innovation to every athlete",
@@ -123,6 +127,8 @@ npm run dev -- generate --brief examples/campaign-brief.json --output my-output
 ### Key fields
 
 - **`localizedMessages`** (optional): Map of locale codes to translated campaign messages. The pipeline resolves the message by matching `locale` — exact match, then language-only fallback (e.g. `"es"` matches `"es-MX"`), then default `message`. Use `--locale <code>` to override the brief's locale at runtime.
+- **`localizedFields`** (optional, per product): Map of locale codes to `{ name, description }` overrides. When a locale is active, product names and descriptions on creatives are rendered in the target language using the same fallback chain.
+- **`audience`** (optional): Target audience description (e.g. `"Young professionals aged 25-35"`). Injected into fal.ai prompts to tailor generated imagery.
 - **`brandGuidelines.colors`**: `text` and `background` hex colors plus an `accent` array with hex values and descriptions. Used for overlay styling, prompt context, and compliance color checks.
 - **`brandGuidelines.typography`**: Font settings for `heading`, `subheading`, and `body` levels. The overlay uses heading for product name, body for description, and subheading for campaign message. Font stacks with generic fallbacks (e.g. `"Futura, sans-serif"`) are rendered via sharp's SVG/Pango.
 - **`brandGuidelines.identity`**: Brand description, mission, purpose, vision, and values — injected into fal.ai prompts so generated images reflect brand aesthetic.
@@ -165,7 +171,7 @@ Results are included in `report.json` with structured `checks` objects per produ
 
 ## Design Decisions
 
-1. **Brand-aware image generation**: Brand identity, color palette, and values are injected into every fal.ai prompt, so generated images reflect the brand aesthetic — not just the product description. Prompts also reserve space for logo and text overlay.
+1. **Brand-aware image generation**: Brand identity, color palette, values, and target audience are injected into every fal.ai prompt, so generated images reflect the brand aesthetic — not just the product description. Prompts also reserve space for logo and text overlay.
 
 2. **Direct ratio generation over crop-from-square**: Each aspect ratio is generated natively at the target dimensions via fal.ai, producing better compositions than cropping a single square image.
 
@@ -173,7 +179,7 @@ Results are included in `report.json` with structured `checks` objects per produ
 
 4. **Sharp for compositing**: Using sharp's SVG/Pango renderer for text and PNG compositing for logos keeps overlay fast, offline, and free. Each creative composites the product name (heading), description (body), and campaign message (subheading) in a brand-colored banner, with the logo at top-left.
 
-5. **Localization**: Single locale per run with fallback chain (exact → language-only → default). Localized messages are overlaid on creatives without changing the pipeline flow.
+5. **Localization**: Single locale per run with fallback chain (exact → language-only → default). Both campaign messages and product fields (name, description) are localized, so creatives are fully rendered in the target language.
 
 6. **Structured compliance**: Issues (hard failures) vs. warnings (soft) with per-check breakdowns enable downstream systems to make nuanced decisions rather than just pass/fail.
 
@@ -183,15 +189,31 @@ Results are included in `report.json` with structured `checks` objects per produ
 
 9. **Stage-based pipeline**: Each stage is independent and testable. The orchestrator sequences them and tracks timing per stage for observability.
 
+## Future Directions
+
+### Parallel Generation
+
+Products are generated sequentially today. Since each product's images are independent, they could be generated concurrently with `Promise.all` — turning wall time from `N * products` API calls to roughly 1x. Similarly, a multi-locale mode could generate base images once and fan out the overlay stage per locale, avoiding redundant image generation for each language.
+
+### Figma Plugin
+
+A Figma plugin could replace sharp-based compositing with Figma's rendering engine, giving designers direct control over creative layout:
+
+- **Template-driven compositing**: Designers build templates in Figma with named layers (e.g. `#product-name`, `#campaign-message`, `#logo`). The plugin populates these from the campaign brief, preserving exact typography, spacing, and effects that are difficult to replicate in SVG.
+- **Review workflow**: Generated creatives appear as Figma frames that designers can review, tweak, and approve before export — rather than getting final PNGs from a CLI with no way to adjust.
+- **Design token sync**: Brand guidelines (colors, typography) could be pulled from Figma variables instead of duplicated in JSON, keeping the brief and design system in sync.
+
+The tradeoff is complexity: a Figma plugin requires its own build toolchain (React UI, sandboxed iframe API, manifest), adds an external dependency (Figma account + auth), and makes the pipeline harder to run in CI or review from a terminal. For a headless automation pipeline, sharp compositing is more appropriate. The plugin makes sense when the audience shifts from engineers to designers, or when creative fidelity matters more than automation speed.
+
 ## Known Limitations
 
 - **Font rendering**: Uses system fonts via sharp's SVG/Pango renderer. Futura and Helvetica render natively on macOS; Trade Gothic falls back to `sans-serif`. No bundled font files.
 - **Single locale per run**: The pipeline resolves one locale per execution. Run multiple times for multi-locale campaigns.
+- **Sequential generation**: Products are generated one at a time — could parallelize with `Promise.all` for production use.
 - **Prohibited words are language-agnostic**: English-only keyword matching regardless of locale.
 - **Logo is a placeholder**: The included `examples/assets/brand/logo.png` is a geometric placeholder shape.
 - **Approximate color compliance**: GenAI images rarely match brand colors exactly, so the color distance threshold is lenient (150).
 - No retry/backoff on fal.ai API failures (would add for production use).
-- Single-threaded generation — could parallelize across products for faster throughput.
 
 ## Tech Stack
 

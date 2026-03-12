@@ -42,7 +42,8 @@ export async function overlayText(
 
     // Typography sizes
     const headingSize = parseFontSize(options.typography.heading.fontSize, dims.width);
-    const bodySize = parseFontSize(options.typography.body.fontSize, dims.width);
+    const baseBodySize = parseFontSize(options.typography.body.fontSize, dims.width);
+    const bodySize = asset.aspectRatio === "9:16" ? Math.round(baseBodySize * 1.5) : baseBodySize;
     const subheadingSize = parseFontSize(options.typography.subheading.fontSize, dims.width);
 
     // Create semi-transparent banner with brand background color
@@ -60,8 +61,18 @@ export async function overlayText(
     const messageY = bannerY + bannerHeight - padding - subheadingSize / 2;
     const centerX = Math.round(dims.width / 2);
 
+    let logoSvgElement = "";
+    if (logoBuffer) {
+      const logoScale = asset.aspectRatio === "16:9" ? 0.1 : 0.18;
+      const logoWidth = Math.round(dims.width * logoScale);
+      const margin = Math.round(dims.width * 0.03);
+      const logoB64 = logoBuffer.toString("base64");
+      logoSvgElement = `<image x="${margin}" y="${margin}" width="${logoWidth}" href="data:image/png;base64,${logoB64}" preserveAspectRatio="xMinYMin meet"/>`;
+    }
+
     const textSvg = Buffer.from(
       `<svg width="${dims.width}" height="${dims.height}">
+        ${logoSvgElement}
         <text x="${centerX}" y="${Math.round(nameY)}"
               font-family="${escapeXml(options.typography.heading.fontFamily)}"
               font-size="${headingSize}" font-weight="${options.typography.heading.fontWeight}"
@@ -92,21 +103,6 @@ export async function overlayText(
       { input: textSvg, top: 0, left: 0 },
     ];
 
-    // Composite logo at top-left with 3% margin
-    if (logoBuffer) {
-      const logoWidth = Math.round(dims.width * 0.1);
-      const margin = Math.round(dims.width * 0.03);
-      const resizedLogo = await sharp(logoBuffer)
-        .resize(logoWidth, undefined, { fit: "inside" })
-        .png()
-        .toBuffer();
-
-      composites.push({
-        input: resizedLogo,
-        top: margin,
-        left: margin,
-      });
-    }
 
     await sharp(inputBuffer)
       .resize(dims.width, dims.height, { fit: "cover" })

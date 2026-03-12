@@ -2,12 +2,18 @@ import { z } from "zod";
 
 const hexRegex = /^#[0-9A-Fa-f]{6}$/;
 
+const localizedProductFieldsSchema = z.object({
+  name: z.string().min(1).optional(),
+  description: z.string().optional(),
+});
+
 const productSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   description: z.string(),
   imagePrompt: z.string().min(1).optional(),
   existingAssetDir: z.string().optional(),
+  localizedFields: z.record(z.string(), localizedProductFieldsSchema).optional(),
 });
 
 const typographyStyleSchema = z.object({

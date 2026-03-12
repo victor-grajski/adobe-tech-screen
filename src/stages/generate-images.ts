@@ -11,10 +11,14 @@ export async function generateImages(
   outputDir: string,
   falKey: string,
   brandGuidelines: BrandGuidelines,
+  audience?: string,
 ): Promise<GeneratedAsset[]> {
   fal.config({ credentials: falKey });
 
-  const brandContext = buildBrandPromptContext(brandGuidelines);
+  let brandContext = buildBrandPromptContext(brandGuidelines);
+  if (audience) {
+    brandContext += ` Target audience: ${audience}.`;
+  }
   const assets: GeneratedAsset[] = [];
 
   // Include reused assets as-is

@@ -1,4 +1,4 @@
-import type { CampaignBrief, BrandGuidelines, BrandColors } from "../schemas/brief.js";
+import type { CampaignBrief, BrandGuidelines, BrandColors, Product } from "../schemas/brief.js";
 
 /**
  * Resolves the campaign message for the current locale.
@@ -19,6 +19,30 @@ export function resolveLocalizedMessage(campaign: CampaignBrief["campaign"]): st
   if (langMatch) return localizedMessages[langMatch];
 
   return message;
+}
+
+/**
+ * Resolves localized product fields for the current locale.
+ * Falls back: exact locale → language-only match → default fields.
+ */
+export function resolveLocalizedProduct(product: Product, locale: string): Product {
+  if (!product.localizedFields) return product;
+
+  const fields =
+    product.localizedFields[locale] ??
+    product.localizedFields[
+      Object.keys(product.localizedFields).find(
+        (key) => key.split("-")[0] === locale.split("-")[0],
+      ) ?? ""
+    ];
+
+  if (!fields) return product;
+
+  return {
+    ...product,
+    name: fields.name ?? product.name,
+    description: fields.description ?? product.description,
+  };
 }
 
 /**
@@ -60,7 +84,7 @@ export function parseFontSize(fontSize: string, referencePx: number): number {
  * Builds a brand context string to append to fal.ai image prompts.
  */
 export function buildBrandPromptContext(guidelines: BrandGuidelines): string {
-  const { identity, colors } = guidelines;
+  const { identity, colors, positiveKeywords, prohibitedWords } = guidelines;
 
   const colorList = [
     colors.text,
@@ -71,10 +95,22 @@ export function buildBrandPromptContext(guidelines: BrandGuidelines): string {
 
   const values = identity.values.join(", ");
 
-  return (
+  let context =
     `Brand aesthetic: ${identity.description} ` +
+    `Mission: ${identity.mission}. ` +
+    `Purpose: ${identity.purpose}. ` +
+    `Vision: ${identity.vision}. ` +
     `Colors: ${uniqueColors}. ` +
-    `Values: ${values}. ` +
-    `Leave clean space in upper-left corner and bottom 15% for text overlay`
-  );
+    `Values: ${values}. `;
+
+  if (positiveKeywords.length > 0) {
+    context += `Positive keywords to embody: ${positiveKeywords.join(", ")}. `;
+  }
+  if (prohibitedWords.length > 0) {
+    context += `Avoid depicting: ${prohibitedWords.join(", ")}. `;
+  }
+
+  context += `Leave clean space in upper-left corner and bottom 15% for text overlay`;
+
+  return context;
 }

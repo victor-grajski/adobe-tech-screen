@@ -8,7 +8,7 @@ import { generateImages } from "./stages/generate-images.js";
 import { overlayText } from "./stages/overlay-text.js";
 import { runComplianceChecks } from "./stages/compliance.js";
 import { uploadAssets } from "./stages/upload-assets.js";
-import { resolveLocalizedMessage } from "./utils/brand-helpers.js";
+import { resolveLocalizedMessage, resolveLocalizedProduct } from "./utils/brand-helpers.js";
 import { logger } from "./utils/logger.js";
 
 export async function runPipeline(
@@ -63,6 +63,10 @@ export async function runPipeline(
     projectRoot,
   };
 
+  const resolvedProducts = brief.products.map((p) =>
+    resolveLocalizedProduct(p, brief.campaign.locale),
+  );
+
   logger.info("pipeline", `Locale: ${brief.campaign.locale}, resolved message: "${resolvedMessage}"`);
 
   // Stage 2: Resolve existing assets
@@ -72,12 +76,12 @@ export async function runPipeline(
 
   // Stage 3: Generate missing images (with brand context in prompts)
   end = startStage("generate-images");
-  const rawAssets = await generateImages(manifest, absOutputDir, config.falKey, brandGuidelines);
+  const rawAssets = await generateImages(manifest, absOutputDir, config.falKey, brandGuidelines, brief.campaign.audience);
   end();
 
   // Stage 4: Text overlay (with brand typography, logo, colors)
   end = startStage("overlay-text");
-  const composited = await overlayText(rawAssets, resolvedMessage, brief.products, absOutputDir, overlayOptions);
+  const composited = await overlayText(rawAssets, resolvedMessage, resolvedProducts, absOutputDir, overlayOptions);
   end();
 
   // Stage 5: Compliance checks (with resolved message and brand guidelines)
